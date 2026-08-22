@@ -17,7 +17,7 @@ DEFAULT_SR = 24000  # default sample rate
 DEFAULT_CHAT_MODEL = "deepseek-v4-flash:0731"
 DEFAULT_ASR_MODEL = "nvidia/parakeet-tdt-0.6b-v3"
 
-# Ollama Cloud backend (OpenAI-compatible). Falls back to local Ollama if unset.
+# Ollama Cloud backend (OpenAI-compatible). The LLM always runs on Ollama Cloud.
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "https://ollama.com/v1")
 OLLAMA_API_KEY = os.getenv("OLLAMA_API_KEY", "")
 

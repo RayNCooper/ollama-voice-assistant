@@ -17,8 +17,8 @@ Open-source voice assistant: local ASR (NVIDIA parakeet) + local TTS (Kyutai Poc
 
 ## Tech
 - Python >=3.12, `uv` for env. Backend FastAPI + uvicorn, frontend plain HTML.
-- LLM: `deepseek-v4-flash:0731` via Ollama Cloud (`OLLAMA_HOST` default `https://ollama.com/v1`, `OLLAMA_API_KEY` env).
-- ASR/TTS run local. `ova.sh` orchestrates install/start/stop.
+- LLM: `deepseek-v4-flash:0731` **always** on Ollama Cloud (`OLLAMA_HOST` default `https://ollama.com/v1`, `OLLAMA_API_KEY` env). No local-LLM/local-Ollama path.
+- ASR/TTS run local via the CUDA/Linux pipeline (`ova/pipeline.py`); there is no MLX/Apple-Silicon backend. `ova.sh` orchestrates install/start/stop.
 
 ## Conventions
 - Keep the `ova/` package name (it's the upstream layout).

@@ -2,7 +2,7 @@ import logging
 
 try:
     import torch  # type: ignore
-except Exception:  # pragma: no cover - torch may be absent in MLX installs
+except Exception:  # pragma: no cover - torch may be absent in minimal installs
     torch = None
 
 

@@ -26,7 +26,7 @@ How it works:
    4. Performs normalization of TTS output, converts it to bytes, and sends the bytes back to frontend
 3. The frontend plays the response audio back to the user
 
-All voices - the default one and the cloned ones - are handled by a single TTS model: Kyutai's Pocket TTS. It runs faster than real-time on a plain CPU, so the same code path is used on both the CUDA and Apple Silicon (MLX) backends.
+All voices - the default one and the cloned ones - are handled by a single TTS model: Kyutai's Pocket TTS. It runs faster than real-time on a plain CPU.
 
 Voice cloning requires no finetuning and no transcript: a profile is just a 3-30 second `ref_audio.wav` clip plus a `prompt.txt` with instructions for the LLM. During install (`./ova.sh install`), a one-off setup step encodes each profile's reference clip into a voice state (`profiles/<profile>/voice.safetensors`) and runs a short warmup dialogue (saved under `.ova/` so you can audition each voice). Subsequent starts simply load the cached `.safetensors`, which is much faster than re-encoding the audio. The default profile has no reference clip and uses Pocket TTS's built-in "alba" voice - a nice female voice.
 
@@ -55,17 +55,15 @@ Then open **http://localhost:8000**. The backend API is on `:5173`.
 
 ### pip / uv
 
-Prefer a native install (e.g. Apple Silicon, or you already have `uv`)? Install
-the deps for your platform and use `ova.sh` to orchestrate everything:
+Prefer a native install (you already have `uv` and an NVIDIA/CUDA machine)?
+Install the deps and use `ova.sh` to orchestrate everything:
 
 ```bash
 # NVIDIA / CUDA
 pip install ".[cuda]"
-# Apple Silicon / MLX
-pip install ".[mlx]"
 
 # then install models + run (uses uv under the hood)
-OLLAMA_API_KEY=your_key ./ova.sh install --cuda   # or --mlx
+OLLAMA_API_KEY=your_key ./ova.sh install --cuda
 OLLAMA_API_KEY=your_key ./ova.sh start
 ```
 
@@ -82,11 +80,7 @@ See [Install](#install) and [Start](#start) below for details.
 Fetch Python deps and HF models (the LLM is not downloaded; it lives on Ollama Cloud):
 
 ```bash
-# NVIDIA/CUDA
 OLLAMA_API_KEY=your_key ./ova.sh install --cuda
-
-# Apple/MLX
-OLLAMA_API_KEY=your_key ./ova.sh install --mlx
 ```
 
 The last install step downloads the Pocket TTS weights, builds the voice state (`voice.safetensors`) for every profile, and generates a short warmup dialogue per voice under `.ova/` - have a listen! To clone the bundled `dua`/`sydney` voices you need access to the gated [kyutai/pocket-tts](https://huggingface.co/kyutai/pocket-tts) weights (see the note above); the default voice works without it.
@@ -119,7 +113,7 @@ tail -f .ova/backend.log
 | Env var | Default | Purpose |
 |---|---|---|
 | `OLLAMA_API_KEY` | *(required)* | Ollama Cloud API key |
-| `OLLAMA_HOST` | `https://ollama.com/v1` | OpenAI-compatible base URL. Set to `http://localhost:11434` to fall back to a local Ollama server. |
+| `OLLAMA_HOST` | `https://ollama.com/v1` | OpenAI-compatible base URL for Ollama Cloud. |
 | `OVA_PROFILE` | `default` | Voice profile to use |
 
 To change the LLM, edit `DEFAULT_CHAT_MODEL` in `ova/pipeline.py` (any model available on Ollama Cloud works, e.g. `glm-5.2`, `kimi-k3`, `nemotron-3-nano:30b`).

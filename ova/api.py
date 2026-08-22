@@ -4,14 +4,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 
-with open(".config") as f:
-    backend = f.read().strip().split("=")[1]
-
-if backend == "cuda":
-    from .pipeline import OVAPipeline
-else:
-    # mlx
-    from .mlx_pipeline import OVAPipeline
+from .pipeline import OVAPipeline
 
 OVA_PROFILE = os.getenv("OVA_PROFILE", "default")
 

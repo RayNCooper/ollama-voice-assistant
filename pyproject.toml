@@ -15,11 +15,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Apple Silicon / MLX backend (ASR only; TTS runs via pocket-tts on CPU)
-mlx = [
-    "mlx-audio>=0.3.1",
-]
-
 # Torch / CUDA backend
 cuda = [
     "torch",

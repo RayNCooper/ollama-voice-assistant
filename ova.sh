@@ -17,8 +17,6 @@ FRONTEND_PORT=8000
 
 OVA_PROFILE="${OVA_PROFILE:-default}"
 
-LLM="deepseek-v4-flash:0731"
-MLX_MODELS=("mlx-community/parakeet-tdt-0.6b-v3")
 CUDA_MODELS=("nvidia/parakeet-tdt-0.6b-v3")
 
 usage() {
@@ -29,8 +27,8 @@ Options:
   OVA_PROFILE=<profile>  Set the profile to use (default: default)
 
 Commands:
-  install --cuda | --mlx
-            Create uv env, install deps for CUDA/MLX, and fetch models
+  install --cuda
+            Create uv env, install CUDA deps, and fetch models
   start     Start backend + frontend server (non-blocking)
   stop      Stop running services
   help      Show this message
@@ -233,25 +231,6 @@ stop_service() {
   echo "$name stopped"
 }
 
-ensure_ollama_model() {
-  local model=$1
-  # When using Ollama Cloud (or any remote host), skip the local pull.
-  if [[ -n "${OLLAMA_HOST:-}" && "$OLLAMA_HOST" != http://localhost:* ]]; then
-    echo "Ollama Cloud backend detected (OLLAMA_HOST=$OLLAMA_HOST); skipping local pull of $model"
-    return 0
-  fi
-  local models
-  if models="$(ollama list 2>/dev/null || true)"; then
-    if echo "$models" | awk 'NR>1{print $1}' | grep -qx "$model"; then
-      echo "Ollama model present: $model"
-      return 0
-    fi
-  fi
-
-  echo "Pulling Ollama model: $model"
-  ollama pull "$model"
-}
-
 ensure_hf_models() {
   local backend=$1
   ensure_cmd uvx
@@ -260,11 +239,8 @@ ensure_hf_models() {
     cuda)
       models=("${CUDA_MODELS[@]}")
       ;;
-    mlx)
-      models=("${MLX_MODELS[@]}")
-      ;;
     *)
-      die "unknown backend for HF models: $backend (expected cuda or mlx)"
+      die "unknown backend for HF models: $backend (expected cuda)"
       ;;
   esac
 
@@ -288,40 +264,27 @@ fi
 case "$cmd" in
   install)
     ensure_cmd uv
-    # Local ollama CLI is only needed for a local backend; cloud needs none.
-    if [[ -z "${OLLAMA_HOST:-}" || "$OLLAMA_HOST" == http://localhost:* ]]; then
-      ensure_cmd ollama
-    fi
     install_backend=""
     while [[ $# -gt 0 ]]; do
       case "$1" in
         --cuda)
-          [[ -z "$install_backend" ]] || die "install accepts exactly one of --cuda or --mlx"
+          [[ -z "$install_backend" ]] || die "install accepts only --cuda"
           install_backend="cuda"
           ;;
-        --mlx)
-          [[ -z "$install_backend" ]] || die "install accepts exactly one of --cuda or --mlx"
-          install_backend="mlx"
-          ;;
         *)
-          die "unknown install option: $1 (expected --cuda or --mlx)"
+          die "unknown install option: $1 (expected --cuda)"
           ;;
       esac
       shift
     done
 
-    [[ -n "$install_backend" ]] || die "install requires one of --cuda or --mlx"
+    [[ -n "$install_backend" ]] || die "install requires --cuda"
 
     printf 'backend=%s\n' "$install_backend" > "$ROOT_DIR/.config"
     echo "Wrote backend config: $ROOT_DIR/.config"
 
     uv venv --clear
-    if [[ "$install_backend" == "cuda" ]]; then
-      uv pip install -e ".[cuda]"
-    else
-      uv pip install --prerelease=allow -e ".[mlx]"
-    fi
-    ensure_ollama_model "$LLM"
+    uv pip install -e ".[cuda]"
     ensure_hf_models "$install_backend"
 
     # Fetch Pocket TTS weights, build voice states (.safetensors) for all
