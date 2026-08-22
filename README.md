@@ -16,8 +16,6 @@ Models used:
 * LLM: [deepseek-v4-flash:0731](https://ollama.com/library/deepseek-v4-flash) via Ollama Cloud (fast + intelligent; swap in `ova/pipeline.py` for any other cloud model)
 * TTS: [Kyutai Pocket TTS](https://huggingface.co/kyutai/pocket-tts) - a lightweight CPU-friendly TTS with built-in voice cloning (local)
 
-**Why "Outrageous"?** Because it was outrageously easy to create!
-
 How it works:
 
 1. Frontend captures user's audio and sends a blob of bytes to the backend `/chat` endpoint
@@ -34,22 +32,6 @@ Voice cloning requires no finetuning and no transcript: a profile is just a 3-30
 
 > **Note on voice cloning:** encoding your own `ref_audio.wav` requires access to the gated [kyutai/pocket-tts](https://huggingface.co/kyutai/pocket-tts) weights - accept the terms on the model page and log in locally with `uvx hf auth login`. Without it, the built-in voices (e.g. the default profile) still work, and the install step will simply skip the cloned profiles with a warning.
 
-
-## TO-DO
-
-- [x] Add Apple Silicon (MLX) support
-- [x] Remove the need for prepared transcript for voice cloning (Pocket TTS clones directly from the audio clip)
-- [ ] Add Voice Activity Detection (VAD) client-side (e.g. see  https://docs.vad.ricky0123.com/)
-- [ ] Add orchestration to detect more complex tasks (e.g. requiring GPT/Claude) or whether tool calls (web search, file search, other cli/API calls are needed)
-
-
-## Demos
-
-## Voice assistant with Dua Lipa's cloned voice
-https://github.com/user-attachments/assets/9b546ab1-8c71-44f2-85d8-433b3a3d267f
-
-## Voice assistant with the default voice
-https://github.com/user-attachments/assets/a296dbf7-9fa9-4904-bf22-d0cdc1e625a4
 
 ## Quick start
 
@@ -97,7 +79,7 @@ See [Install](#install) and [Start](#start) below for details.
 
 ## Install
 
-Fetch Python deps and HF models (the LLM is not downloaded — it lives on Ollama Cloud):
+Fetch Python deps and HF models (the LLM is not downloaded; it lives on Ollama Cloud):
 
 ```bash
 # NVIDIA/CUDA
@@ -163,10 +145,6 @@ On first start the reference clip is encoded and cached as `profiles/<voice>/voi
 ```bash
 uv run --no-sync python3 -m ova.tts <voice>
 ```
-
-And that's it!
-
-**Enjoy!**
 
 ---
 
