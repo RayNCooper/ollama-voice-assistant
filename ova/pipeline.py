@@ -19,7 +19,6 @@ DEFAULT_ASR_MODEL = "nvidia/parakeet-tdt-0.6b-v3"
 
 # Ollama Cloud backend (OpenAI-compatible). The LLM always runs on Ollama Cloud.
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "https://ollama.com/v1")
-OLLAMA_API_KEY = os.getenv("OLLAMA_API_KEY", "")
 
 
 class OVAPipeline:
@@ -228,7 +227,10 @@ class OVAPipeline:
     def chat(self, text: str) -> str:
         self.context.append({"role": "user", "content": text})
 
-        client = OpenAI(base_url=OLLAMA_HOST, api_key=OLLAMA_API_KEY or "ollama")
+        # Read the key at call time so a key set at runtime (e.g. from the GUI
+        # Settings tab, which updates os.environ) takes effect without restart.
+        api_key = os.environ.get("OLLAMA_API_KEY", "").strip() or "ollama"
+        client = OpenAI(base_url=OLLAMA_HOST, api_key=api_key)
 
         response = client.chat.completions.create(
             model=self.chat_model,

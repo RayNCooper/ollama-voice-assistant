@@ -16,7 +16,7 @@ from pathlib import Path
 
 from PySide6.QtCore import QObject, Signal, Slot
 
-from . import audio_io, voices
+from . import audio_io, settings, voices
 
 
 class PipelineWorker(QObject):
@@ -46,6 +46,14 @@ class PipelineWorker(QObject):
     @Slot()
     def load(self) -> None:
         self.load_started.emit()
+
+        # A key saved in the GUI takes precedence and is restored into the
+        # environment so the pipeline picks it up; otherwise keep whatever the
+        # OLLAMA_API_KEY env var already provides.
+        saved_key = settings.load_api_key()
+        if saved_key:
+            os.environ["OLLAMA_API_KEY"] = saved_key
+
         try:
             # Imported lazily: pulls in torch / NeMo / Pocket TTS.
             from ova.pipeline import OVAPipeline
@@ -60,7 +68,7 @@ class PipelineWorker(QObject):
             )
             return
 
-        has_api_key = bool(os.getenv("OLLAMA_API_KEY"))
+        has_api_key = bool(os.environ.get("OLLAMA_API_KEY", "").strip())
         self.loaded.emit(voices.list_voices(), self.pipeline.profile, has_api_key)
         self.status.emit("Ready.")
 

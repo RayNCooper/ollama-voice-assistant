@@ -44,8 +44,9 @@ class ChatTab(QWidget):
         banner_layout = QHBoxLayout(self.banner)
         banner_layout.setContentsMargins(12, 8, 12, 8)
         self.banner_label = QLabel(
-            "OLLAMA_API_KEY is not set. Speech recognition and playback work, "
-            "but the assistant cannot reply until you set the key and restart."
+            "No Ollama Cloud API key set. Speech recognition and playback work, "
+            "but the assistant cannot reply until you add your key in the "
+            "Settings tab (it takes effect right away - no restart needed)."
         )
         self.banner_label.setObjectName("warning")
         self.banner_label.setWordWrap(True)

@@ -85,13 +85,16 @@ pip install ".[gui,cuda]"
 OLLAMA_API_KEY=your_key python gui.py
 ```
 
-The app has two tabs:
+The app has three tabs:
 
 - **Chat** - click *Record*, speak, click again to send; the assistant
   transcribes, replies via Ollama Cloud, and speaks the answer back. A banner
-  warns you if `OLLAMA_API_KEY` is missing.
+  warns you if no Ollama Cloud API key is set.
 - **Voices** - list your voices, set the active one, and create a new clone from
   a short reference `.wav`.
+- **Settings** - paste your Ollama Cloud API key here instead of setting
+  `OLLAMA_API_KEY`; it is saved locally and takes effect immediately (no
+  restart).
 
 **Consent gate.** Creating a cloned voice always opens a mandatory consent
 dialog asking whether *"the person in this recording has been informed and

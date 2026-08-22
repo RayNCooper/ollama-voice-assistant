@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
 
 from . import theme
 from .chat_tab import ChatTab
+from .settings_tab import SettingsTab
 from .voices_tab import VoicesTab
 from .worker import PipelineWorker
 
@@ -28,10 +29,12 @@ class MainWindow(QMainWindow):
 
         self.chat_tab = ChatTab(self)
         self.voices_tab = VoicesTab(self)
+        self.settings_tab = SettingsTab(self)
 
         tabs = QTabWidget()
         tabs.addTab(self.chat_tab, "Chat")
         tabs.addTab(self.voices_tab, "Voices")
+        tabs.addTab(self.settings_tab, "Settings")
         self.setCentralWidget(tabs)
 
         self.statusBar().showMessage("Starting...")
@@ -92,6 +95,10 @@ class MainWindow(QMainWindow):
     def _on_turn_done(self, transcript: str, response: str) -> None:
         self.chat_tab.append_assistant(response)
         self.chat_tab.set_processing(False)
+
+    def on_api_key_changed(self, has_key: bool) -> None:
+        # Called by the Settings tab after the user saves a key.
+        self.chat_tab.set_api_key_warning(not has_key)
 
     # ------------------------------------------------------------ shutdown
     def closeEvent(self, event) -> None:  # noqa: N802 (Qt naming)
