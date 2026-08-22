@@ -56,7 +56,6 @@ https://github.com/user-attachments/assets/a296dbf7-9fa9-4904-bf22-d0cdc1e625a4
 - Python >=3.12
 - `uv` installed and available in PATH
 - An **Ollama Cloud** API key (set `OLLAMA_API_KEY`; get one at https://ollama.com)
-- Verified on a system with RTX 5070 (12GiB VRAM); lower-end setups should be possible
 
 ## Install
 
@@ -133,4 +132,4 @@ And that's it!
 
 ---
 
-**Disclaimer & Ethical Considerations:** This project is a proof-of-concept demonstration and is provided **as is** without any warranties or guarantees. It is intended for educational and experimental purposes only. The voice cloning is also purely for educational purposes - for real-life/commercial use, one should always seek the relevant permissions. This demo also highlights the ethical and security aspects - the ease with which one can clone a voice with no finetuning, using only a 3-5 second audio clip - which is both eerie, and potentially dangerous in the wrong hands. All this can be accomplished on a commodity PC that most people can afford.
+**Disclaimer & Ethical Considerations:** This project is a proof-of-concept demonstration and is provided **as is** without any warranties or guarantees. It is intended for educational and experimental purposes only. The voice cloning is also purely for educational purposes - for real-life/commercial use, one should always seek the relevant permissions. This demo also highlights the ethical and security aspects - the ease with which one can clone a voice with no finetuning, using only a 3-5 second audio clip - which is both eerie, and potentially dangerous in the wrong hands. The ASR and TTS run locally; the LLM runs on Ollama Cloud.
