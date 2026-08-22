@@ -1,0 +1,27 @@
+[package]
+name = "ollama-voice-assistant"
+version = "0.1.0"
+description = "Ollama Voice Assistant desktop shell by Olio Solutions"
+authors = ["Olio Solutions <dennis@olio.solutions>"]
+edition = "2021"
+rust-version = "1.77.2"
+
+# The library holds all the logic; main.rs is a thin entrypoint. This mirrors
+# the layout `tauri init` produces for Tauri 2.
+[lib]
+name = "ollama_voice_assistant_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+
+# Smaller, faster release binaries for the bundled desktop app.
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true

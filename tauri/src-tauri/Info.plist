@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Extra Info.plist keys merged into the generated bundle by Tauri.
+  Required so the WKWebview can request the microphone; without the usage
+  description, getUserMedia() fails silently and recording never starts.
+-->
+<plist version="1.0">
+<dict>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Ollama Voice Assistant needs the microphone to record what you say so it can transcribe and reply.</string>
+</dict>
+</plist>

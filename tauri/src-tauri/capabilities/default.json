@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Default capability for the main window. Core permissions only; the app uses no Tauri plugins or custom IPC.",
+  "windows": ["main"],
+  "permissions": ["core:default"]
+}

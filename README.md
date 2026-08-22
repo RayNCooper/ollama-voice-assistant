@@ -104,6 +104,61 @@ has been informed" and "the person has personally consented"); there is no way
 to skip it. Each confirmed clone is recorded - with a UTC timestamp and profile
 name - to an append-only audit log at `consent_log.jsonl` in the repo root.
 
+### Desktop app (Tauri)
+
+A native desktop wrapper for the web UI lives in `tauri/`. It is a thin
+[Tauri 2](https://v2.tauri.app/) shell: on launch it spawns the **unmodified**
+Python backend (`uvicorn ova.api:app` on `:5173`) and a static file server for
+`index.html` (`python -m http.server` on `:8000`) as child processes, points a
+900x700 webview at `http://localhost:8000`, and kills both processes on quit.
+Nothing in the pipeline changes - the desktop app reuses exactly what `ova.sh`
+runs. Both servers bind to loopback only.
+
+> The webview loads the frontend from `http://localhost:8000` (not a bundled
+> `tauri://` asset) on purpose: the backend's CORS policy only allows the
+> `localhost:5173` / `localhost:8000` origins, so the page must be served from
+> one of them for its `fetch` to `/chat` to succeed.
+
+**Prerequisites**
+
+- [Rust + Cargo](https://rustup.rs/) (Tauri compiles a small Rust shell)
+- `uv` and the Python deps installed: `uv pip install -e ".[cuda]"`
+  (on Apple Silicon, torch/NeMo run via CPU/MPS)
+- The system webview: Xcode Command Line Tools on macOS (`xcode-select --install`)
+- An **Ollama Cloud** API key available in the launch environment
+  (`OLLAMA_API_KEY`)
+
+**One-command macOS build**
+
+```bash
+./mac_build.sh
+```
+
+The script verifies it is running on macOS, ensures `uv` + the `.venv` and the
+`.[cuda]` deps, checks the Rust toolchain (installing the Tauri CLI if needed),
+regenerates the Olio-branded icons, and runs `cargo tauri build`. The bundles
+land in:
+
+```
+tauri/src-tauri/target/release/bundle/macos/Ollama Voice Assistant.app
+tauri/src-tauri/target/release/bundle/dmg/*.dmg
+```
+
+For a dev run without bundling: `cd tauri && cargo tauri dev`.
+
+**First-run caveats**
+
+- The very first launch downloads the ASR/TTS weights (a few minutes) unless
+  you already ran `./ova.sh install --cuda`. The window opens immediately; the
+  first voice request waits for the backend to finish warming up.
+- The app runs the backend from **this repository** (it uses the repo's `.venv`
+  and locates the repo relative to the build). Keep the repo in place; if you
+  move the `.app` to another machine, set `OVA_REPO_DIR` to the repo path.
+- Launched from Finder, GUI apps inherit a minimal environment. If your
+  `OLLAMA_API_KEY` is set in a shell profile, either launch the `.app` from a
+  terminal (`open -a "Ollama Voice Assistant"` inherits your shell env) or set
+  the key system-wide (`launchctl setenv OLLAMA_API_KEY ...`).
+
 ## Pre-requisites
 
 - Python >=3.12
