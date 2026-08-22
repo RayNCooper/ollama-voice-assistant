@@ -22,5 +22,4 @@ Open-source voice assistant: local ASR (NVIDIA parakeet) + local TTS (Kyutai Poc
 
 ## Conventions
 - Keep the `ova/` package name (it's the upstream layout).
-- `gh_app_token.py` mints the GitHub App install token (walled-garden helper).
 - Commit messages: concise, imperative.
