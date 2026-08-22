@@ -294,7 +294,7 @@ case "$cmd" in
     ;;
   start)
     ensure_cmd uv
-    echo "Starting Outrageous Voice Assistant..."
+    echo "Starting Ollama Voice Assistant..."
     echo "Starting front-end..."
     if is_running "$FRONTEND_PID"; then
       if port_open "$FRONTEND_PORT"; then

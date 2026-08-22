@@ -37,7 +37,7 @@ DEFAULT_VOICE = "alba"  # Pocket TTS built-in female English voice
 LSD_DECODE_STEPS = 4  # decode steps: higher = better quality, slower (lib default: 1)
 FRAMES_AFTER_EOS = 8  # extra frames after end-of-speech to avoid clipped tail phonemes
 WARMUP_DIALOGUE = (
-    "Hi! I am your outrageous voice assistant. My voice is now ready, so let's chat!"
+    "Hi! I am your Ollama voice assistant. My voice is now ready, so let's chat!"
 )
 
 
