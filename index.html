@@ -1,0 +1,359 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Voice Chat</title>
+    <style>
+      :root{
+        --bg: #e7e7ea;
+        --shadow-dark: rgba(163, 177, 198, 0.55);
+        --shadow-light: rgba(255, 255, 255, 0.95);
+        --text: #2b2f36;
+        --muted: rgba(43, 47, 54, 0.65);
+        --accent: #3b82f6;
+        --danger: #ef4444;
+      }
+
+      * { box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        background: radial-gradient(1200px 800px at 30% 20%, #f2f2f6 0%, var(--bg) 55%, #dfe0e6 100%);
+        color: var(--text);
+        display: grid;
+        place-items: center;
+      }
+
+      .stage {
+        width: min(520px, 92vw);
+        display: grid;
+        place-items: center;
+        padding: 28px;
+      }
+
+      .talk {
+        --size: min(360px, 78vw);
+        width: var(--size);
+        height: var(--size);
+        border-radius: 999px;
+        border: 0;
+        background: linear-gradient(145deg, #f2f2f6, #d8d9df);
+        box-shadow:
+          24px 24px 48px var(--shadow-dark),
+          -24px -24px 48px var(--shadow-light);
+        cursor: pointer;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        display: grid;
+        place-items: center;
+        gap: 10px;
+        padding: 26px;
+        transition: transform 120ms ease, box-shadow 160ms ease, filter 160ms ease;
+        position: relative;
+        outline: none;
+      }
+
+      .talk:active { transform: scale(0.99); }
+      .talk:focus-visible {
+        box-shadow:
+          24px 24px 48px var(--shadow-dark),
+          -24px -24px 48px var(--shadow-light),
+          0 0 0 4px rgba(59, 130, 246, 0.22);
+      }
+
+      .talk .label {
+        font-size: clamp(18px, 3.2vw, 22px);
+        font-weight: 650;
+        letter-spacing: 0.2px;
+        text-align: center;
+      }
+      .talk .sub {
+        font-size: clamp(12px, 2.6vw, 14px);
+        color: var(--muted);
+        text-align: center;
+        min-height: 18px;
+      }
+
+      .icon {
+        width: clamp(44px, 10vw, 58px);
+        height: clamp(44px, 10vw, 58px);
+        color: rgba(43, 47, 54, 0.78);
+        display: grid;
+        place-items: center;
+        filter: drop-shadow(0 2px 6px rgba(0,0,0,0.07));
+      }
+
+      .state-recording {
+        background: linear-gradient(145deg, #ececf1, #dadbe2);
+        box-shadow:
+          inset 18px 18px 40px var(--shadow-dark),
+          inset -18px -18px 40px var(--shadow-light);
+      }
+
+      .state-recording .icon { color: rgba(239, 68, 68, 0.9); }
+
+      .talk.state-waiting::after {
+        content: "";
+        position: absolute;
+        inset: -18px;
+        border-radius: 999px;
+        background: radial-gradient(circle, rgba(59,130,246,0.30) 0%, rgba(59,130,246,0.10) 35%, rgba(59,130,246,0) 65%);
+        animation: pulse 1.15s ease-in-out infinite;
+        pointer-events: none;
+        filter: blur(0.2px);
+      }
+
+      @keyframes pulse {
+        0%   { transform: scale(0.985); opacity: 0.45; }
+        50%  { transform: scale(1.02);  opacity: 0.9; }
+        100% { transform: scale(0.985); opacity: 0.45; }
+      }
+
+      .wave {
+        height: 38px;
+        display: none;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 8px;
+        filter: drop-shadow(0 2px 6px rgba(0,0,0,0.07));
+      }
+      .wave span {
+        width: 8px;
+        height: 10px;
+        border-radius: 999px;
+        background: rgba(59, 130, 246, 0.85);
+        animation: wave 0.95s ease-in-out infinite;
+        transform-origin: 50% 100%;
+      }
+      .wave span:nth-child(2) { animation-delay: 0.12s; opacity: 0.85; }
+      .wave span:nth-child(3) { animation-delay: 0.24s; opacity: 0.75; }
+      .wave span:nth-child(4) { animation-delay: 0.36s; opacity: 0.85; }
+      .wave span:nth-child(5) { animation-delay: 0.48s; opacity: 0.75; }
+
+      @keyframes wave {
+        0%   { transform: scaleY(0.35); }
+        50%  { transform: scaleY(1.35); }
+        100% { transform: scaleY(0.35); }
+      }
+
+      .talk.state-playing .wave { display: flex; }
+      .talk.state-playing .icon { display: none; }
+    </style>
+  </head>
+  <body>
+    <main class="stage">
+      <button id="talkBtn" class="talk state-idle" type="button" aria-label="Tap to talk">
+        <div class="icon" aria-hidden="true">
+          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+            <line x1="12" y1="19" x2="12" y2="23"></line>
+            <line x1="8" y1="23" x2="16" y2="23"></line>
+          </svg>
+        </div>
+
+        <div class="wave" aria-hidden="true">
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+
+        <div class="label" id="label">Tap to talk</div>
+        <div class="sub" id="sub">Tap again to send</div>
+      </button>
+    </main>
+
+    <script>
+      const API_URL = "http://localhost:5173/chat"; // adjust if needed
+
+      const btn = document.getElementById("talkBtn");
+      const labelEl = document.getElementById("label");
+      const subEl = document.getElementById("sub");
+
+      let currentAudio = null;
+
+      function setState(state, { label, sub, ariaLabel } = {}) {
+        btn.classList.remove("state-idle", "state-recording", "state-waiting", "state-playing");
+        btn.classList.add(`state-${state}`);
+        if (label != null) labelEl.textContent = label;
+        if (sub != null) subEl.textContent = sub;
+        if (ariaLabel != null) btn.setAttribute("aria-label", ariaLabel);
+      }
+
+      function flattenFloat32(chunks) {
+        const total = chunks.reduce((sum, c) => sum + c.length, 0);
+        const out = new Float32Array(total);
+        let offset = 0;
+        for (const c of chunks) {
+          out.set(c, offset);
+          offset += c.length;
+        }
+        return out;
+      }
+
+      function encodeWavPcm16(monoFloat32, sampleRate) {
+        const numChannels = 1;
+        const bitsPerSample = 16;
+        const blockAlign = (numChannels * bitsPerSample) / 8;
+        const byteRate = sampleRate * blockAlign;
+        const dataSize = monoFloat32.length * 2;
+        const buffer = new ArrayBuffer(44 + dataSize);
+        const view = new DataView(buffer);
+
+        let p = 0;
+        const writeU32 = (v) => { view.setUint32(p, v, true); p += 4; };
+        const writeU16 = (v) => { view.setUint16(p, v, true); p += 2; };
+        const writeStr = (s) => { for (let i = 0; i < s.length; i++) view.setUint8(p++, s.charCodeAt(i)); };
+
+        writeStr("RIFF");
+        writeU32(36 + dataSize);
+        writeStr("WAVE");
+        writeStr("fmt ");
+        writeU32(16);
+        writeU16(1);
+        writeU16(numChannels);
+        writeU32(sampleRate);
+        writeU32(byteRate);
+        writeU16(blockAlign);
+        writeU16(bitsPerSample);
+        writeStr("data");
+        writeU32(dataSize);
+
+        for (let i = 0; i < monoFloat32.length; i++) {
+          const s = Math.max(-1, Math.min(1, monoFloat32[i]));
+          view.setInt16(p, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+          p += 2;
+        }
+
+        return buffer;
+      }
+
+      async function fetchAndPlayTts(wavBlob) {
+        setState("waiting", { label: "Sending…", sub: "Waiting for response", ariaLabel: "Waiting for response" });
+
+        // Stop any previous playback
+        if (currentAudio) {
+          currentAudio.pause();
+          currentAudio = null;
+        }
+
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "audio/wav" },
+          body: wavBlob,
+        });
+
+        if (!res.ok) {
+          setState("idle", { label: "Tap to talk", sub: `Error: ${res.status}`, ariaLabel: "Tap to talk" });
+          return;
+        }
+
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+
+        const audio = new Audio(url);
+        currentAudio = audio;
+
+        audio.onended = () => {
+          URL.revokeObjectURL(url);
+          if (currentAudio === audio) currentAudio = null;
+          setState("idle", { label: "Tap to talk", sub: "Tap again to send", ariaLabel: "Tap to talk" });
+        };
+        audio.onerror = () => {
+          URL.revokeObjectURL(url);
+          setState("idle", { label: "Tap to talk", sub: "Audio playback failed.", ariaLabel: "Tap to talk" });
+        };
+
+        try {
+          await audio.play(); // should succeed because triggered by user gesture
+          setState("playing", { label: "Playing…", sub: "Tap to interrupt", ariaLabel: "Playing audio" });
+        } catch (e) {
+          setState("idle", { label: "Tap to talk", sub: "Playback blocked by the browser.", ariaLabel: "Tap to talk" });
+        }
+      }
+
+      let recording = null;
+
+      async function startRecording() {
+        if (!navigator.mediaDevices?.getUserMedia) {
+          setState("idle", { label: "Unsupported", sub: "Microphone not available", ariaLabel: "Microphone unsupported" });
+          return;
+        }
+
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+          });
+
+          const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          const source = audioContext.createMediaStreamSource(stream);
+          const processor = audioContext.createScriptProcessor(4096, 1, 1);
+          const zeroGain = audioContext.createGain();
+          zeroGain.gain.value = 0;
+
+          const chunks = [];
+          processor.onaudioprocess = (e) => {
+            const data = e.inputBuffer.getChannelData(0);
+            chunks.push(new Float32Array(data));
+          };
+
+          source.connect(processor);
+          processor.connect(zeroGain);
+          zeroGain.connect(audioContext.destination);
+
+          recording = { stream, audioContext, source, processor, zeroGain, chunks };
+          setState("recording", { label: "Listening…", sub: "Tap to stop & send", ariaLabel: "Recording audio" });
+        } catch (err) {
+          setState("idle", { label: "Tap to talk", sub: "Mic permission denied", ariaLabel: "Tap to talk" });
+        }
+      }
+
+      async function stopRecording() {
+        const r = recording;
+        recording = null;
+        if (!r) return null;
+
+        const sampleRate = r.audioContext.sampleRate;
+        try { r.processor.disconnect(); } catch {}
+        try { r.zeroGain.disconnect(); } catch {}
+        try { r.source.disconnect(); } catch {}
+        try { r.stream.getTracks().forEach((t) => t.stop()); } catch {}
+        try { await r.audioContext.close(); } catch {}
+
+        const mono = flattenFloat32(r.chunks);
+        const wavBuffer = encodeWavPcm16(mono, sampleRate);
+        return new Blob([wavBuffer], { type: "audio/wav" });
+      }
+
+      btn.addEventListener("click", async () => {
+        if (btn.classList.contains("state-waiting")) return;
+
+        if (btn.classList.contains("state-playing")) {
+          if (currentAudio) currentAudio.pause();
+          currentAudio = null;
+          setState("idle", { label: "Tap to talk", sub: "Tap again to send", ariaLabel: "Tap to talk" });
+          return;
+        }
+
+        if (!recording) {
+          await startRecording();
+          return;
+        }
+
+        setState("waiting", { label: "Processing…", sub: "Sending audio", ariaLabel: "Sending audio" });
+        const wavBlob = await stopRecording();
+        if (!wavBlob) {
+          setState("idle", { label: "Tap to talk", sub: "Tap again to send", ariaLabel: "Tap to talk" });
+          return;
+        }
+
+        try {
+          await fetchAndPlayTts(wavBlob);
+        } catch (err) {
+          setState("idle", { label: "Tap to talk", sub: "Request failed", ariaLabel: "Tap to talk" });
+        }
+      });
+    </script>
+
+  </body>
+</html>

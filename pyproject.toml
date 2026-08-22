@@ -1,0 +1,41 @@
+[project]
+name = "ova"
+version = "0.1.0"
+description = "Outrageous Voice Assistant - Fully local end-to-end voice assistant pipeline using open weight models."
+readme = "README.md"
+requires-python = ">=3.12.9"
+dependencies = [
+    "numpy",
+    "soxr",
+    "fastapi",
+    "openai",
+    "uvicorn",
+    "pip",
+    "pocket-tts",
+]
+
+[project.optional-dependencies]
+# Apple Silicon / MLX backend (ASR only; TTS runs via pocket-tts on CPU)
+mlx = [
+    "mlx-audio>=0.3.1",
+]
+
+# Torch / CUDA backend
+cuda = [
+    "torch",
+    "torchaudio",
+    "nemo-toolkit[asr]",
+    "cuda-python",
+]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["ova*"]
+exclude = ["profiles*"]
