@@ -1,8 +1,14 @@
-# Ollama Voice Assistant
+# ollama-voice-assistant
 
-![Outrageous Logo](outrageous-logo-large.jpeg)
+An open-source voice assistant from [Olio Solutions](https://olio.solutions). ASR and TTS run fully local with open-weight models; the LLM ("the brain") runs on Ollama Cloud via its OpenAI-compatible API.
 
-An **open-source voice assistant** with a simple FastAPI backend and a simple HTML front-end. ASR and TTS run fully local with open-weight models; the **LLM ("the brain") runs on Ollama Cloud** via its OpenAI-compatible API. This is a fork of [acatovic/ova](https://github.com/acatovic/ova) that swaps the local Ollama LLM for Ollama Cloud — so you get a smarter, faster model without needing a GPU big enough to hold it.
+It uses a simple FastAPI backend and a plain HTML front-end. You get a smarter, faster model without needing a GPU big enough to hold it, because the heavy LLM lives in the cloud while speech recognition and speech synthesis stay on your machine.
+
+## About this project
+
+- **A fork.** This is a fork of [acatovic/ova](https://github.com/acatovic/ova). The original design and much of the pipeline are its work; full credit to the upstream author. This fork swaps the local Ollama LLM for Ollama Cloud.
+- **Mostly written by AI.** The code and docs in this fork are mostly written by AI (Claude Code / Hermes), reviewed and shipped by a human. We disclose this openly.
+- **An Olio Solutions open-source project.** Published under the [Olio Solutions](https://olio.solutions) identity, based in Mönchengladbach, Germany. Contact: dennis@olio.solutions.
 
 Models used:
 
