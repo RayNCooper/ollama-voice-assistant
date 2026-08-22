@@ -1,0 +1,40 @@
+# One-liner: `docker compose up --build`
+#
+# Requires OLLAMA_API_KEY in the environment or a .env file (see .env.example).
+# The `backend` service runs the local ASR/TTS + FastAPI API on :5173.
+# The `frontend` service serves the plain-HTML UI on :8000.
+# Open http://localhost:8000 in your browser.
+
+services:
+  backend:
+    build: .
+    image: ollama-voice-assistant
+    ports:
+      - "5173:5173"
+    environment:
+      # Ollama Cloud API key (required). From your shell env or .env file.
+      OLLAMA_API_KEY: ${OLLAMA_API_KEY:?set OLLAMA_API_KEY in your env or .env}
+      # OpenAI-compatible base URL. Defaults to Ollama Cloud.
+      OLLAMA_HOST: ${OLLAMA_HOST:-https://ollama.com/v1}
+      # Voice profile to use.
+      OVA_PROFILE: ${OVA_PROFILE:-default}
+    volumes:
+      # Cache downloaded ASR/TTS weights across restarts.
+      - ova-cache:/root/.cache
+    # GPU acceleration (optional): requires the NVIDIA Container Toolkit.
+    # Uncomment to expose the host GPU; without it the pipeline runs on CPU.
+    # gpus: all
+
+  frontend:
+    image: python:3.12-slim
+    working_dir: /srv
+    command: python -m http.server 8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./index.html:/srv/index.html:ro
+    depends_on:
+      - backend
+
+volumes:
+  ova-cache:

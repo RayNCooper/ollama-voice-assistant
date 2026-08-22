@@ -51,6 +51,44 @@ https://github.com/user-attachments/assets/9b546ab1-8c71-44f2-85d8-433b3a3d267f
 ## Voice assistant with the default voice
 https://github.com/user-attachments/assets/a296dbf7-9fa9-4904-bf22-d0cdc1e625a4
 
+## Quick start
+
+### Docker (one-liner)
+
+The fastest way to run the whole thing. You only need Docker and an Ollama Cloud
+API key. ASR + TTS run locally inside the container; the LLM runs on Ollama Cloud.
+
+```bash
+export OLLAMA_API_KEY=your_key   # or put it in a .env file (see .env.example)
+docker compose up --build
+```
+
+Then open **http://localhost:8000**. The backend API is on `:5173`.
+
+- The image bundles the CUDA (Linux) pipeline; the container works on CPU out of
+  the box. For GPU acceleration, install the NVIDIA Container Toolkit and
+  uncomment `gpus: all` in `docker-compose.yml`.
+- First boot downloads the ASR/TTS weights (cached in a named volume for next
+  time), so the initial start takes a few minutes.
+
+### pip / uv
+
+Prefer a native install (e.g. Apple Silicon, or you already have `uv`)? Install
+the deps for your platform and use `ova.sh` to orchestrate everything:
+
+```bash
+# NVIDIA / CUDA
+pip install ".[cuda]"
+# Apple Silicon / MLX
+pip install ".[mlx]"
+
+# then install models + run (uses uv under the hood)
+OLLAMA_API_KEY=your_key ./ova.sh install --cuda   # or --mlx
+OLLAMA_API_KEY=your_key ./ova.sh start
+```
+
+See [Install](#install) and [Start](#start) below for details.
+
 ## Pre-requisites
 
 - Python >=3.12

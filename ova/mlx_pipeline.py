@@ -6,13 +6,17 @@ import tempfile
 import mlx_audio.stt.models  # noqa: F401
 from mlx_audio.stt.generate import generate_transcription
 from mlx_audio.stt.utils import load_model as load_asr_model
-from ollama import chat
+from openai import OpenAI
 
 from .profiles import PROMPT_FILE, resolve_profile_dir
 from .tts import PocketTTS
 
-DEFAULT_CHAT_MODEL = "ministral-3:3b-instruct-2512-q4_K_M"
+DEFAULT_CHAT_MODEL = "deepseek-v4-flash:0731"
 DEFAULT_ASR_MODEL = "mlx-community/parakeet-tdt-0.6b-v3"
+
+# Ollama Cloud backend (OpenAI-compatible). Falls back to local Ollama if unset.
+OLLAMA_HOST = os.getenv("OLLAMA_HOST", "https://ollama.com/v1")
+OLLAMA_API_KEY = os.getenv("OLLAMA_API_KEY", "")
 
 
 class OVAPipeline:
@@ -63,15 +67,16 @@ class OVAPipeline:
     def chat(self, text: str) -> str:
         self.context.append({"role": "user", "content": text})
 
-        response = chat(
+        client = OpenAI(base_url=OLLAMA_HOST, api_key=OLLAMA_API_KEY or "ollama")
+
+        response = client.chat.completions.create(
             model=self.chat_model,
             messages=self.context,
-            think=False,
             stream=False,
         )
 
         response = (
-            response.message.content.replace("**", "")
+            response.choices[0].message.content.replace("**", "")
             .replace("_", "")
             .replace("#", "")
             .strip()
