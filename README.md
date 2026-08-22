@@ -1,8 +1,8 @@
-# Outrageous Voice Assistant (Ollama Cloud backend)
+# Ollama Voice Assistant
 
 ![Outrageous Logo](outrageous-logo-large.jpeg)
 
-A **voice assistant** with a simple FastAPI backend and a simple HTML front-end. ASR and TTS run fully local with open-weight models; the **LLM ("the brain") runs on Ollama Cloud** via its OpenAI-compatible API. This is a fork of [acatovic/ova](https://github.com/acatovic/ova) that swaps the local Ollama LLM for Ollama Cloud — so you get a smarter, faster model without needing a GPU big enough to hold it.
+An **open-source voice assistant** with a simple FastAPI backend and a simple HTML front-end. ASR and TTS run fully local with open-weight models; the **LLM ("the brain") runs on Ollama Cloud** via its OpenAI-compatible API. This is a fork of [acatovic/ova](https://github.com/acatovic/ova) that swaps the local Ollama LLM for Ollama Cloud — so you get a smarter, faster model without needing a GPU big enough to hold it.
 
 Models used:
 
