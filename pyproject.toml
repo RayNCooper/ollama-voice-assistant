@@ -23,6 +23,12 @@ cuda = [
     "cuda-python",
 ]
 
+# Cross-platform desktop GUI (PySide6/Qt). Not part of the base deps.
+gui = [
+    "PySide6",
+    "sounddevice",
+]
+
 [build-system]
 requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"

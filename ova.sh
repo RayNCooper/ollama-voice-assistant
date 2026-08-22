@@ -35,7 +35,7 @@ Commands:
 
 Example:
   ./ova.sh install --cuda
-  OVA_PROFILE=dua ./ova.sh start
+  OVA_PROFILE=default ./ova.sh start
 EOF
 }
 

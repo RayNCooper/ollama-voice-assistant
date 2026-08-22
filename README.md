@@ -69,6 +69,38 @@ OLLAMA_API_KEY=your_key ./ova.sh start
 
 See [Install](#install) and [Start](#start) below for details.
 
+### Desktop GUI
+
+A cross-platform desktop app (PySide6/Qt) is the primary experience: voice chat
+and voice cloning in one native window, Olio-branded. It imports the pipeline
+directly and runs everything in a single process (local ASR + TTS, LLM on Ollama
+Cloud).
+
+Install the optional `gui` extra (PySide6 + sounddevice), then launch `gui.py`:
+
+```bash
+# GUI extra (add [cuda] too for the local ASR/TTS backend)
+pip install ".[gui,cuda]"
+
+OLLAMA_API_KEY=your_key python gui.py
+```
+
+The app has two tabs:
+
+- **Chat** - click *Record*, speak, click again to send; the assistant
+  transcribes, replies via Ollama Cloud, and speaks the answer back. A banner
+  warns you if `OLLAMA_API_KEY` is missing.
+- **Voices** - list your voices, set the active one, and create a new clone from
+  a short reference `.wav`.
+
+**Consent gate.** Creating a cloned voice always opens a mandatory consent
+dialog asking whether *"the person in this recording has been informed and
+personally consented to their voice being cloned and used by this app."* The
+*Create Voice* button stays disabled until you tick **both** boxes ("the person
+has been informed" and "the person has personally consented"); there is no way
+to skip it. Each confirmed clone is recorded - with a UTC timestamp and profile
+name - to an append-only audit log at `consent_log.jsonl` in the repo root.
+
 ## Pre-requisites
 
 - Python >=3.12
@@ -83,7 +115,7 @@ Fetch Python deps and HF models (the LLM is not downloaded; it lives on Ollama C
 OLLAMA_API_KEY=your_key ./ova.sh install --cuda
 ```
 
-The last install step downloads the Pocket TTS weights, builds the voice state (`voice.safetensors`) for every profile, and generates a short warmup dialogue per voice under `.ova/` - have a listen! To clone the bundled `dua`/`sydney` voices you need access to the gated [kyutai/pocket-tts](https://huggingface.co/kyutai/pocket-tts) weights (see the note above); the default voice works without it.
+The last install step downloads the Pocket TTS weights, builds the voice state (`voice.safetensors`) for every profile, and generates a short warmup dialogue per voice under `.ova/` - have a listen! Cloning your own voice (adding a profile with a `ref_audio.wav`) needs access to the gated [kyutai/pocket-tts](https://huggingface.co/kyutai/pocket-tts) weights (see the note above); the default voice works without it.
 
 ## Start
 
@@ -93,10 +125,10 @@ Start the front-end and back-end services (non-blocking) with a fast default voi
 OLLAMA_API_KEY=your_key ./ova.sh start
 ```
 
-To start the voice assistant with one of the pre-cloned voices:
+To start the voice assistant with one of your own cloned voices (see [Adding new voices](#adding-new-voices-clones--profiles) or use the [Desktop GUI](#desktop-gui)):
 
 ```bash
-OVA_PROFILE=dua OLLAMA_API_KEY=your_key ./ova.sh start  # NOTE: with cloned voice of a famous artist
+OVA_PROFILE=my-voice OLLAMA_API_KEY=your_key ./ova.sh start
 ```
 
 - Front-end: http://localhost:8000
