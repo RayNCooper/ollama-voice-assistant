@@ -1,0 +1,117 @@
+# Orca workspace hooks (repo-root orca.yaml — https://com.stablyai.orca).
+# `setup` runs once when a new workspace (git worktree) is created, `archive`
+# when it is archived. Orca injects $ORCA_ROOT_PATH (the main checkout),
+# $ORCA_WORKTREE_PATH (this workspace) and $ORCA_WORKSPACE_NAME.
+#
+# Goal: a fresh worktree is `./ova.sh start` / `./mac_build.sh`-ready — a venv
+# with the platform's ASR/TTS stack, an .env holding the Ollama Cloud key, and
+# the generated Pocket TTS voice states. Everything expensive (uv's wheel
+# cache, the Hugging Face weights cache, cargo's build dir) is shared across
+# worktrees rather than re-downloaded per workspace.
+scripts:
+  setup: |
+    set -eu
+    cd "$ORCA_WORKTREE_PATH"
+
+    command -v uv >/dev/null 2>&1 || {
+      echo "orca setup: 'uv' not found in PATH — install it: https://docs.astral.sh/uv/" >&2
+      exit 1
+    }
+
+    # --- Secrets -------------------------------------------------------------
+    # .env is git-ignored, so it never arrives with the worktree. Symlink the
+    # main checkout's when there is one so every worktree shares one API key;
+    # otherwise seed a placeholder from the committed example (fill in
+    # OLLAMA_API_KEY before starting the backend).
+    if [ -f "$ORCA_ROOT_PATH/.env" ]; then
+      ln -sfn "$ORCA_ROOT_PATH/.env" .env
+    elif [ ! -e .env ]; then
+      cp .env.example .env
+      echo "orca setup: seeded .env from .env.example — set OLLAMA_API_KEY in it."
+    fi
+
+    # --- Shared cargo build dir (Tauri desktop app) --------------------------
+    # A cold `cargo tauri build` compiles the whole Rust dep tree (several
+    # minutes, ~2 GB). Point tauri/src-tauri/target at a shared dir so a new
+    # worktree reuses those artifacts. Cargo locks the target dir, so parallel
+    # builds from two worktrees queue rather than corrupt each other; `archive`
+    # below removes only the symlink, never the shared target.
+    cargo_cache="${HOME}/.cache/ova/cargo-target"
+    mkdir -p "$cargo_cache" tauri/src-tauri
+    [ -e tauri/src-tauri/target ] || ln -s "$cargo_cache" tauri/src-tauri/target
+
+    # --- Python env ----------------------------------------------------------
+    # The editable install points at this worktree's path, so the venv cannot be
+    # shared — but uv's wheel cache is global, so this is mostly local work.
+    if [ ! -d .venv ]; then
+      uv venv
+    fi
+
+    case "$(uname -s)" in
+      Darwin)
+        # Same stack as the Linux '[cuda]' extra MINUS 'cuda-python', which
+        # ships Linux/Windows wheels only (see mac_build.sh). torch/NeMo run on
+        # CPU/MPS here.
+        uv pip install -e "." torch torchaudio "nemo-toolkit[asr]"
+        ;;
+      *)
+        # Linux/CUDA path — mirrors `./ova.sh install --cuda`, minus the model
+        # downloads, which the next block handles for both platforms.
+        printf 'backend=cuda\n' > .config
+        uv pip install -e ".[cuda]"
+        ;;
+    esac
+
+    # --- Model weights -------------------------------------------------------
+    # The HF cache lives in ~/.cache/huggingface and is already shared across
+    # worktrees, so this is a no-op once any workspace has pulled parakeet.
+    if command -v uvx >/dev/null 2>&1; then
+      uvx hf download nvidia/parakeet-tdt-0.6b-v3 || \
+        echo "orca setup: parakeet download failed — rerun './ova.sh install --cuda' later." >&2
+    fi
+
+    # --- Pocket TTS voice states --------------------------------------------
+    # profiles/*/voice.safetensors are git-ignored build products. Copying the
+    # main checkout's costs a second; generating them loads the TTS model and
+    # runs a warmup dialogue per profile (minutes).
+    copied_voices=0
+    for src in "$ORCA_ROOT_PATH"/profiles/*/voice.safetensors; do
+      [ -e "$src" ] || continue
+      profile="$(basename "$(dirname "$src")")"
+      [ -d "profiles/$profile" ] || continue
+      cp "$src" "profiles/$profile/voice.safetensors"
+      copied_voices=1
+    done
+    if [ "$copied_voices" -eq 0 ]; then
+      uv run --no-sync python3 -m ova.tts || \
+        echo "orca setup: voice setup failed — rerun 'uv run python3 -m ova.tts' later." >&2
+    fi
+
+    echo "Setup complete. Run './ova.sh start' (Linux/CUDA) or './mac_build.sh' (macOS)."
+    # Exit explicitly on success so Orca gets a clean 0 status.
+    exit 0
+
+  # Reclaim disk before the worktree is archived. Everything removed here is
+  # git-ignored and rebuilt by `setup`.
+  archive: |
+    set -eu
+    cd "$ORCA_WORKTREE_PATH"
+
+    rm -rf .venv .ova build dist ./*.egg-info
+    rm -rf .pytest_cache .ruff_cache .mypy_cache
+    find . -name '__pycache__' -type d -prune -exec rm -rf {} + 2>/dev/null || true
+
+    # The shared cargo cache is reached through a symlink — drop the link, never
+    # the cache behind it. A real target/ dir (built before setup linked it) is
+    # this worktree's own, so that one goes.
+    if [ -L tauri/src-tauri/target ]; then
+      rm -f tauri/src-tauri/target
+    else
+      rm -rf tauri/src-tauri/target
+    fi
+
+    rm -f .config profiles/*/voice.safetensors consent_log.jsonl
+
+    # Likewise: only ever this worktree's .env (a symlink to the main
+    # checkout's, or its own throwaway copy).
+    rm -f .env
