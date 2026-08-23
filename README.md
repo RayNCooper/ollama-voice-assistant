@@ -104,10 +104,39 @@ has been informed" and "the person has personally consented"); there is no way
 to skip it. Each confirmed clone is recorded - with a UTC timestamp and profile
 name - to an append-only audit log at `consent_log.jsonl` in the repo root.
 
+### Web UI (`index.html`)
+
+`index.html` is the browser frontend, served on `:8000` by `ova.sh start` and by
+the Tauri desktop app. It is a single Olio-branded page:
+
+- a **microphone button** (or the <kbd>space</kbd> key) to record, send, and
+  hear the reply, with the state - listening, thinking, speaking - always
+  spelled out underneath;
+- a **running transcript** of both sides of the conversation, so you can read
+  what was heard and what was answered;
+- a **Settings** panel holding the Ollama Cloud API key, plus the active model,
+  endpoint, and voice profile, closing with the Olio wordmark
+  (`assets/olio-wordmark.png`) and the running version and build (e.g.
+  *Version 0.1.0 - build cee594f*; a trailing `+` means the working tree was
+  dirty at launch).
+
+**Setting the API key from the UI.** Open *Settings*, paste your key, and press
+*Save key*. The key is written to `.ova/api_key` (gitignored, `0600`) and takes
+effect on the next turn - no restart and no `OLLAMA_API_KEY` export needed. It
+is also picked up automatically the next time the backend starts. An
+`OLLAMA_API_KEY` present in the environment still wins over the saved key. If no
+key is set at all, the page says so and opens Settings for you; recording and
+transcription keep working, only the reply needs the key.
+
+The backend exposes this to the page over three small endpoints alongside
+`POST /chat`: `GET /health`, `GET /settings`, and `POST /settings/api-key`.
+`/chat` additionally returns the transcript and the reply text in the
+`X-OVA-Transcript` / `X-OVA-Reply` response headers.
+
 ### Desktop app (Tauri)
 
 A native desktop wrapper for the web UI lives in `tauri/`. It is a thin
-[Tauri 2](https://v2.tauri.app/) shell: on launch it spawns the **unmodified**
+[Tauri 2](https://v2.tauri.app/) shell: on launch it spawns the same
 Python backend (`uvicorn ova.api:app` on `:5173`) and a static file server for
 `index.html` (`python -m http.server` on `:8000`) as child processes, points a
 900x700 webview at `http://localhost:8000`, and kills both processes on quit.
@@ -202,7 +231,7 @@ tail -f .ova/backend.log
 
 | Env var | Default | Purpose |
 |---|---|---|
-| `OLLAMA_API_KEY` | *(required)* | Ollama Cloud API key |
+| `OLLAMA_API_KEY` | *(required)* | Ollama Cloud API key. Optional if you saved one from the UI (Settings panel in the web UI, or the Settings tab in the desktop GUI); the env var wins when both are set. |
 | `OLLAMA_HOST` | `https://ollama.com/v1` | OpenAI-compatible base URL for Ollama Cloud. |
 | `OVA_PROFILE` | `default` | Voice profile to use |
 
