@@ -39,10 +39,12 @@ else
 fi
 
 # --- 2. Python dependencies -------------------------------------------------
-step "Installing Python deps: .[cuda]"
-info "torch / NeMo run on Apple Silicon via CPU/MPS; the 'cuda' extra just"
-info "pins the same local ASR/TTS stack the Linux pipeline uses."
-uv pip install -e ".[cuda]"
+step "Installing Python deps (macOS variant of the local ASR/TTS stack)"
+info "torch / NeMo run on Apple Silicon via CPU/MPS. We install the same"
+info "packages as the Linux '[cuda]' extra MINUS 'cuda-python': that package"
+info "(and its 'cuda-bindings' dependency) publishes Linux/Windows wheels"
+info "only, so '.[cuda]' is unsatisfiable on Darwin and would abort the build."
+uv pip install -e "." torch torchaudio "nemo-toolkit[asr]"
 
 # --- 3. Rust / Cargo toolchain ---------------------------------------------
 step "Checking the Rust toolchain (required by Tauri)"

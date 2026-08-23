@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Entitlements for the macOS bundle.
+
+  Tauri ad-hoc signs the app with the hardened runtime enabled (see
+  bundle.macOS.signingIdentity in tauri.conf.json). Under the hardened runtime
+  microphone access is denied unless the binary carries the audio-input
+  entitlement, so getUserMedia() in the WKWebview would fail outright without
+  this file. NSMicrophoneUsageDescription in Info.plist covers the separate TCC
+  consent prompt; both are required.
+
+  The app is NOT sandboxed: it spawns the Python backend (uvicorn) and the
+  static file server as child processes and reads the repo's .venv and model
+  weights from disk, none of which the App Sandbox would permit.
+-->
+<plist version="1.0">
+<dict>
+	<key>com.apple.security.device.audio-input</key>
+	<true/>
+</dict>
+</plist>
