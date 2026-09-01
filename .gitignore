@@ -215,3 +215,7 @@ push.py
 
 # Voice-cloning consent audit log (local runtime data; may contain personal info)
 consent_log.jsonl
+
+# Local debug artifacts
+.playwright-mcp/
+orb-check.png

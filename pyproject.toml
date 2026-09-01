@@ -1,6 +1,6 @@
 [project]
 name = "ollama-voice-assistant"
-version = "0.1.0"
+version = "0.2.0"
 description = "Open-source voice assistant - local ASR + TTS with the LLM on Ollama Cloud."
 readme = "README.md"
 requires-python = ">=3.12.9"

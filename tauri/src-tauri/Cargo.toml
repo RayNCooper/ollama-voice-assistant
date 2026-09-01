@@ -1,6 +1,6 @@
 [package]
 name = "ollama-voice-assistant"
-version = "0.1.0"
+version = "0.2.0"
 description = "Ollama Voice Assistant desktop shell by Olio Solutions"
 authors = ["Olio Solutions <dennis@olio.solutions>"]
 edition = "2021"

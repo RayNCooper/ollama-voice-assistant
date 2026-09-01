@@ -76,6 +76,30 @@ async def write_api_key(update: ApiKeyUpdate) -> dict:
     }
 
 
+@app.post("/transcribe")
+async def transcribe_request_handler(request: Request):
+    """Partial transcription for the live "what I'm hearing" display.
+
+    The UI posts the audio captured so far every few hundred milliseconds while
+    you talk, so you can see the words land before the turn is sent. Same ASR
+    model as /chat, but no LLM and no TTS, so it stays cheap. Declared `async`
+    like /chat so calls serialise on the event loop rather than reaching the
+    (non-reentrant) pipeline concurrently.
+    """
+    audio_in = await request.body()
+    if not audio_in:
+        return JSONResponse(content={"transcript": ""})
+
+    try:
+        text = pipeline.transcribe(audio_in)
+    except Exception as exc:  # a failed partial must never break the turn
+        return JSONResponse(
+            status_code=500, content={"error": "asr_failed", "detail": str(exc)}
+        )
+
+    return JSONResponse(content={"transcript": text or ""})
+
+
 @app.post("/chat", response_class=Response)
 async def chat_request_handler(request: Request):
     audio_in = await request.body()
